@@ -2,22 +2,18 @@
 #include <Wire.h>
 #include <Adafruit_BMP280.h>
 #include "Adafruit_Si7021.h"
-#include <SPI.h>
 #include <WiFiNINA.h>
-#include <WiFiClient.h>
-#include <Ethernet.h>
 #include <MySQL_Connection.h>
 #include <MySQL_Cursor.h>
 #include "Log_data.h"
 
-byte mac_addr[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
-
-IPAddress server_addr(10,10,0,16);
-char user[] = DB_USR;              
-char password[] = DB_PSSW;        
+byte mac_addr[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };                                                       // MAC Address of the uC
+IPAddress server_addr(10,10,0,16);                                                                              // Destination IP to MySQL DataBase
+char user[] = DB_USR;                                                                                                    
+char password[] = DB_PSSW;                                                                                      
 
 WiFiClient client;
-MySQL_Connection conn((Client *)&client);
+MySQL_Connection conn((Client *)&client);                                                                       
 
 Adafruit_BMP280 bmp;
 Adafruit_Si7021 sensor = Adafruit_Si7021();
@@ -25,13 +21,10 @@ Adafruit_Si7021 sensor = Adafruit_Si7021();
 int sensor_temp,sensor_pres,sensor_humi;
 int status = WL_IDLE_STATUS;
 
-char INSERT_DATA[] = "INSERT INTO sensors.sensors_data (temperature,humidity,pressure) VALUES (%d,%d,%d)";
-char query[128];
+char INSERT_DATA[] = "INSERT INTO sensors.sensors_data (temperature,humidity,pressure) VALUES (%d,%d,%d)";      
+char query[128];                                                                                                
 
-unsigned long timer = millis();
-unsigned long saved_timer;
-unsigned long diff_time;
-unsigned long refresh_time = 600000; // 10min refresh
+unsigned long timer = millis(), saved_timer, diff_time, refresh_time = 600000; // <= SET THE FREQUENCY OF COLLECTING AND SENDING DATA (ms)
 
 void ethernetConnection(){
   while (status != WL_CONNECTED) {
@@ -65,7 +58,8 @@ void setup()
                   Adafruit_BMP280::STANDBY_MS_500); /* Standby time. */
 }
 
-void debugOutputData(){
+void debugOutputData() //DEBUG FUNCTION TO READ RAW DATA FROM SENSORS
+{
 
   Serial.println("=======[ DEBUG DATA ]=======");
 
