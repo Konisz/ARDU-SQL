@@ -18,10 +18,10 @@ MySQL_Connection conn((Client *)&client);
 Adafruit_BMP280 bmp;
 Adafruit_Si7021 sensor = Adafruit_Si7021();
 
-int sensor_temp,sensor_pres,sensor_humi;
+int sensor_temp, sensor_temp_env, sensor_pres, sensor_humi;
 int status = WL_IDLE_STATUS;
 
-char INSERT_DATA[] = "INSERT INTO sensors.sensors_data (temperature,humidity,pressure) VALUES (%d,%d,%d)";      
+char INSERT_DATA[] = "INSERT INTO sensors.sensors_data (temperature,temperature_env,humidity,pressure) VALUES (%d,%d,%d,%d)";      
 char query[128];                                                                                                
 
 unsigned long timer = millis(), saved_timer, diff_time, refresh_time = 600000; // <= SET THE FREQUENCY OF COLLECTING AND SENDING DATA (ms)
@@ -39,7 +39,7 @@ void databaseConnection()
   {
     delay(1000);
     MySQL_Cursor *cur_mem = new MySQL_Cursor(&conn);
-    sprintf(query, INSERT_DATA, sensor_temp, sensor_humi, sensor_pres);
+    sprintf(query, INSERT_DATA, sensor_temp,sensor_temp_env, sensor_humi, sensor_pres);
     cur_mem->execute(query);
     delete cur_mem;
   }
@@ -48,6 +48,7 @@ void databaseConnection()
 
 void setup() 
 {
+  //Serial.begin(9600);
   ethernetConnection();
   sensor.begin();
   bmp.begin(0x76);
@@ -56,6 +57,7 @@ void setup()
                   Adafruit_BMP280::SAMPLING_X16,    /* Pressure oversampling */
                   Adafruit_BMP280::FILTER_X16,      /* Filtering. */
                   Adafruit_BMP280::STANDBY_MS_500); /* Standby time. */
+  
 }
 
 void debugOutputData() //DEBUG FUNCTION TO READ RAW DATA FROM SENSORS
@@ -82,13 +84,15 @@ void debugOutputData() //DEBUG FUNCTION TO READ RAW DATA FROM SENSORS
 
 void getDataFromSensors()
 {
-  sensor_temp = (sensor.readTemperature() + (bmp.readTemperature())) / 2;
+  sensor_temp = bmp.readTemperature();
+  sensor_temp_env = sensor.readTemperature();
   sensor_pres = ((bmp.readPressure()/100)+20.34);
   sensor_humi = sensor.readHumidity();
 }
 
 void loop() 
 {
+
   timer = millis();
   diff_time = timer - saved_timer;
 
@@ -98,4 +102,8 @@ void loop()
       getDataFromSensors();
       databaseConnection();
   }
+
+//delay(2000);
+//getDataFromSensors();
+//debugOutputData();
 }
